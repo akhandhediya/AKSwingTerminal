@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "AKSwingTerminal": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:33856;http://localhost:33857"
+    }
+  }
+}

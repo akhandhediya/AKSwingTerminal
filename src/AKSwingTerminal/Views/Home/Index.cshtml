@@ -1,0 +1,116 @@
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="text-center">
+    <h1 class="display-4">Welcome to Fyers API Integration</h1>
+    <p class="lead">A single-user application for trading with Fyers API</p>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5>API Connection Status</h5>
+            </div>
+            <div class="card-body">
+                <div id="connectionDetails">
+                    <div class="mb-3">
+                        <span class="fw-bold">Status:</span>
+                        <span id="apiStatus" class="badge bg-secondary">Checking...</span>
+                    </div>
+                    <div class="mb-3">
+                        <span class="fw-bold">API Credentials:</span>
+                        <span id="apiCredentialsStatus" class="badge bg-secondary">Checking...</span>
+                    </div>
+                    <div class="mb-3">
+                        <span class="fw-bold">Token Expiry:</span>
+                        <span id="tokenExpiry">Not available</span>
+                    </div>
+                </div>
+                <div class="d-grid gap-2">
+                    <a href="/Auth/Setup" class="btn btn-primary">Manage API Connection</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5>Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="/Trading/Dashboard" class="btn btn-success">Trading Dashboard</a>
+                    <a href="/Trading/Orders" class="btn btn-outline-primary">View Orders</a>
+                    <a href="/Trading/Holdings" class="btn btn-outline-primary">View Holdings</a>
+                    <a href="/Trading/Positions" class="btn btn-outline-primary">View Positions</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Check API connection status on page load
+            checkApiStatus();
+            
+            // Refresh status every 60 seconds
+            setInterval(checkApiStatus, 60000);
+            
+            function checkApiStatus() {
+                $.ajax({
+                    url: '/api/auth/status',
+                    type: 'GET',
+                    success: function(data) {
+                        if (data.hasValidToken) {
+                            $('#apiStatus').removeClass('bg-secondary bg-danger').addClass('bg-success').text('Connected');
+                            $('#connectionStatus').removeClass('bg-secondary bg-danger').addClass('bg-success').text('Connected');
+                            $('#connectBtn').text('Disconnect').removeClass('btn-outline-success').addClass('btn-outline-danger');
+                            
+                            if (data.tokenExpiresAt) {
+                                const expiryDate = new Date(data.tokenExpiresAt);
+                                $('#tokenExpiry').text(expiryDate.toLocaleString());
+                            }
+                        } else {
+                            $('#apiStatus').removeClass('bg-secondary bg-success').addClass('bg-danger').text('Disconnected');
+                            $('#connectionStatus').removeClass('bg-secondary bg-success').addClass('bg-danger').text('Disconnected');
+                            $('#connectBtn').text('Connect').removeClass('btn-outline-danger').addClass('btn-outline-success');
+                            $('#tokenExpiry').text('Not available');
+                        }
+                        
+                        if (data.hasActiveApiCredentials) {
+                            $('#apiCredentialsStatus').removeClass('bg-secondary bg-danger').addClass('bg-success').text('Configured');
+                        } else {
+                            $('#apiCredentialsStatus').removeClass('bg-secondary bg-success').addClass('bg-danger').text('Not Configured');
+                        }
+                    },
+                    error: function() {
+                        $('#apiStatus').removeClass('bg-secondary bg-success').addClass('bg-danger').text('Error');
+                        $('#apiCredentialsStatus').removeClass('bg-secondary bg-success').addClass('bg-danger').text('Error');
+                        $('#connectionStatus').removeClass('bg-secondary bg-success').addClass('bg-danger').text('Error');
+                    }
+                });
+            }
+            
+            // Handle connect/disconnect button
+            $('#connectBtn').click(function() {
+                if ($(this).text() === 'Connect') {
+                    window.location.href = '/Auth/Connect';
+                } else {
+                    if (confirm('Are you sure you want to disconnect from Fyers API?')) {
+                        $.ajax({
+                            url: '/api/auth/disconnect',
+                            type: 'POST',
+                            success: function() {
+                                window.location.reload();
+                            }
+                        });
+                    }
+                }
+            });
+        });
+    </script>
+}

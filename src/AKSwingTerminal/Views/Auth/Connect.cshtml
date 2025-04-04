@@ -1,0 +1,256 @@
+@{
+    ViewData["Title"] = "Fyers API Connection";
+}
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    @TempData["ErrorMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    @TempData["SuccessMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">Fyers API Connection</h3>
+                </div>
+                <div class="card-body">
+                    <div class="connection-status mb-4">
+                        <h4>Connection Status</h4>
+                        <div class="d-flex justify-content-between align-items-center p-3 border rounded">
+                            <div>
+                                <span class="badge bg-@(ViewBag.IsConnected ? "success" : "danger") me-2">
+                                    @(ViewBag.IsConnected ? "Connected" : "Disconnected")
+                                </span>
+                                <span id="connectionLabel">@(ViewBag.IsConnected ? "Connected to Fyers API" : "Not connected to Fyers API")</span>
+                            </div>
+                            <div>
+                                @if (ViewBag.IsConnected)
+                                {
+                                    <form method="post" action="@Url.Action("Disconnect", "Auth")">
+                                        <button type="submit" class="btn btn-danger btn-sm">Disconnect</button>
+                                    </form>
+                                }
+                                else if (ViewBag.HasCredentials)
+                                {
+                                    <a href="@Url.Action("Connect", "Auth")" class="btn btn-success btn-sm">Connect</a>
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="api-credentials mb-4">
+                        <h4>API Credentials</h4>
+                        <form id="apiCredentialsForm" method="post" action="@Url.Action("SaveCredentials", "Auth")">
+                            <div class="mb-3">
+                                <label for="appId" class="form-label">App ID</label>
+                                <input type="text" class="form-control" id="appId" name="appId" required 
+                                       value="@ViewBag.AppId" placeholder="Enter your Fyers App ID">
+                                <div class="form-text">Your Fyers API App ID (e.g., ABCD-100)</div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="appSecret" class="form-label">App Secret</label>
+                                <div class="input-group">
+                                    <input type="password" class="form-control" id="appSecret" name="appSecret" required
+                                           value="@ViewBag.AppSecret" placeholder="Enter your Fyers App Secret">
+                                    <button class="btn btn-outline-secondary" type="button" id="toggleSecret">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </div>
+                                <div class="form-text">Your Fyers API App Secret</div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="redirectUrl" class="form-label">Redirect URL</label>
+                                <input type="url" class="form-control" id="redirectUrl" name="redirectUrl" required
+                                       value="@ViewBag.RedirectUrl" placeholder="Enter your redirect URL">
+                                <div class="form-text">The redirect URL configured in your Fyers API app</div>
+                            </div>
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary">Save Credentials</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    @if (ViewBag.IsConnected)
+                    {
+                        <div class="token-info">
+                            <h4>Token Information</h4>
+                            <div class="p-3 border rounded">
+                                <div class="mb-3">
+                                    <label class="form-label">Access Token</label>
+                                    <div class="input-group">
+                                        <input type="password" class="form-control" id="accessToken" value="@ViewBag.AccessToken" readonly>
+                                        <button class="btn btn-outline-secondary" type="button" id="toggleToken">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                        <button class="btn btn-outline-secondary" type="button" id="copyToken">
+                                            <i class="bi bi-clipboard"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Expires At</label>
+                                    <input type="text" class="form-control" value="@ViewBag.TokenExpiry" readonly>
+                                </div>
+                                <div class="d-grid gap-2">
+                                    <form method="post" action="@Url.Action("RefreshToken", "Auth")">
+                                        <button type="submit" class="btn btn-warning w-100">Refresh Token</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+                <div class="card-footer">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <a href="@Url.Action("Index", "Home")" class="btn btn-outline-secondary">Back to Home</a>
+                        @if (ViewBag.IsConnected)
+                        {
+                            <a href="@Url.Action("Dashboard", "Trading")" class="btn btn-success">Go to Trading Dashboard</a>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h4 class="mb-0">How to Get Fyers API Credentials</h4>
+                </div>
+                <div class="card-body">
+                    <ol>
+                        <li class="mb-2">Log in to your <a href="https://fyers.in/" target="_blank">Fyers account</a></li>
+                        <li class="mb-2">Navigate to API & Apps section</li>
+                        <li class="mb-2">Create a new application to get your App ID and Secret</li>
+                        <li class="mb-2">Set the redirect URL to: <code id="redirectUrlDisplay">@ViewBag.RedirectUrl</code></li>
+                        <li class="mb-2">Copy the App ID and App Secret to the form above</li>
+                        <li class="mb-2">Click "Save Credentials" and then "Connect" to authenticate with Fyers</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Toggle password visibility for App Secret
+            $('#toggleSecret').click(function() {
+                const input = $('#appSecret');
+                const type = input.attr('type') === 'password' ? 'text' : 'password';
+                input.attr('type', type);
+                
+                const icon = $(this).find('i');
+                if (type === 'text') {
+                    icon.removeClass('bi-eye').addClass('bi-eye-slash');
+                } else {
+                    icon.removeClass('bi-eye-slash').addClass('bi-eye');
+                }
+            });
+            
+            // Toggle token visibility
+            $('#toggleToken').click(function() {
+                const input = $('#accessToken');
+                const type = input.attr('type') === 'password' ? 'text' : 'password';
+                input.attr('type', type);
+                
+                const icon = $(this).find('i');
+                if (type === 'text') {
+                    icon.removeClass('bi-eye').addClass('bi-eye-slash');
+                } else {
+                    icon.removeClass('bi-eye-slash').addClass('bi-eye');
+                }
+            });
+            
+            // Copy token to clipboard
+            $('#copyToken').click(function() {
+                const input = $('#accessToken');
+                const originalType = input.attr('type');
+                
+                // Make visible temporarily to copy
+                input.attr('type', 'text');
+                input.select();
+                document.execCommand('copy');
+                
+                // Restore original visibility
+                input.attr('type', originalType);
+                
+                // Show feedback
+                const originalHtml = $(this).html();
+                $(this).html('<i class="bi bi-check"></i>');
+                setTimeout(function() {
+                    $('#copyToken').html(originalHtml);
+                }, 2000);
+            });
+            
+            // Copy redirect URL to clipboard
+            $('#redirectUrlDisplay').click(function() {
+                const tempInput = $('<input>');
+                $('body').append(tempInput);
+                tempInput.val($(this).text()).select();
+                document.execCommand('copy');
+                tempInput.remove();
+                
+                // Show feedback
+                const originalText = $(this).text();
+                $(this).text('Copied!');
+                setTimeout(function() {
+                    $('#redirectUrlDisplay').text(originalText);
+                }, 2000);
+            });
+            
+            // Form submission via AJAX
+            $('#apiCredentialsForm').submit(function(e) {
+                e.preventDefault();
+                
+                const formData = {
+                    appId: $('#appId').val(),
+                    appSecret: $('#appSecret').val(),
+                    redirectUrl: $('#redirectUrl').val()
+                };
+                
+                $.ajax({
+                    url: '/api/credentials',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(formData),
+                    success: function(response) {
+                        // Show success message
+                        const alert = $('<div class="alert alert-success alert-dismissible fade show" role="alert">' +
+                                       'API credentials saved successfully!' +
+                                       '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>' +
+                                       '</div>');
+                        
+                        $('.connection-status').before(alert);
+                        
+                        // Reload page after a short delay
+                        setTimeout(function() {
+                            window.location.reload();
+                        }, 2000);
+                    },
+                    error: function(xhr) {
+                        // Show error message
+                        const errorMsg = xhr.responseJSON?.error || 'An error occurred while saving credentials';
+                        const alert = $('<div class="alert alert-danger alert-dismissible fade show" role="alert">' +
+                                       errorMsg +
+                                       '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>' +
+                                       '</div>');
+                        
+                        $('.connection-status').before(alert);
+                    }
+                });
+            });
+        });
+    </script>
+}

@@ -1,0 +1,765 @@
+@{
+    ViewData["Title"] = "Trading Dashboard";
+    Layout = "_Layout";
+}
+
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h3 class="mb-0">Trading Dashboard</h3>
+                    <div>
+                        <span id="connectionStatus" class="badge bg-success me-2">Connected</span>
+                        <span id="lastUpdated">Last updated: <span id="updateTime">@DateTime.Now.ToString("HH:mm:ss")</span></span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <div class="card h-100">
+                                <div class="card-header bg-light">
+                                    <h5 class="mb-0">Account Summary</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span>Available Balance:</span>
+                                        <span id="availableBalance" class="fw-bold">₹0.00</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span>Used Margin:</span>
+                                        <span id="usedMargin" class="fw-bold">₹0.00</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span>Available Margin:</span>
+                                        <span id="availableMargin" class="fw-bold">₹0.00</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span>Total Investment:</span>
+                                        <span id="totalInvestment" class="fw-bold">₹0.00</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span>Current Value:</span>
+                                        <span id="currentValue" class="fw-bold">₹0.00</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <span>P&L:</span>
+                                        <span id="pnl" class="fw-bold text-success">₹0.00</span>
+                                    </div>
+                                </div>
+                                <div class="card-footer">
+                                    <button id="refreshAccount" class="btn btn-sm btn-outline-primary w-100">
+                                        <i class="bi bi-arrow-clockwise"></i> Refresh
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-9 mb-3">
+                            <div class="card h-100">
+                                <div class="card-header bg-light">
+                                    <ul class="nav nav-tabs card-header-tabs" id="marketDataTabs" role="tablist">
+                                        <li class="nav-item" role="presentation">
+                                            <button class="nav-link active" id="watchlist-tab" data-bs-toggle="tab" data-bs-target="#watchlist" type="button" role="tab" aria-controls="watchlist" aria-selected="true">Watchlist</button>
+                                        </li>
+                                        <li class="nav-item" role="presentation">
+                                            <button class="nav-link" id="market-depth-tab" data-bs-toggle="tab" data-bs-target="#market-depth" type="button" role="tab" aria-controls="market-depth" aria-selected="false">Market Depth</button>
+                                        </li>
+                                        <li class="nav-item" role="presentation">
+                                            <button class="nav-link" id="market-indices-tab" data-bs-toggle="tab" data-bs-target="#market-indices" type="button" role="tab" aria-controls="market-indices" aria-selected="false">Market Indices</button>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div class="card-body">
+                                    <div class="tab-content" id="marketDataTabContent">
+                                        <div class="tab-pane fade show active" id="watchlist" role="tabpanel" aria-labelledby="watchlist-tab">
+                                            <div class="d-flex justify-content-between mb-3">
+                                                <div class="input-group" style="max-width: 300px;">
+                                                    <input type="text" id="symbolSearch" class="form-control" placeholder="Search symbol...">
+                                                    <button class="btn btn-outline-secondary" type="button" id="addSymbol">
+                                                        <i class="bi bi-plus"></i> Add
+                                                    </button>
+                                                </div>
+                                                <button id="refreshWatchlist" class="btn btn-sm btn-outline-primary">
+                                                    <i class="bi bi-arrow-clockwise"></i> Refresh
+                                                </button>
+                                            </div>
+                                            <div class="table-responsive">
+                                                <table class="table table-striped table-hover" id="watchlistTable">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Symbol</th>
+                                                            <th>LTP</th>
+                                                            <th>Change</th>
+                                                            <th>Change %</th>
+                                                            <th>High</th>
+                                                            <th>Low</th>
+                                                            <th>Volume</th>
+                                                            <th>Actions</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <tr>
+                                                            <td>NSE:NIFTY50-INDEX</td>
+                                                            <td>22,500.00</td>
+                                                            <td class="text-success">+120.50</td>
+                                                            <td class="text-success">+0.54%</td>
+                                                            <td>22,550.30</td>
+                                                            <td>22,380.10</td>
+                                                            <td>-</td>
+                                                            <td>
+                                                                <button class="btn btn-sm btn-outline-danger remove-symbol">
+                                                                    <i class="bi bi-trash"></i>
+                                                                </button>
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>NSE:RELIANCE-EQ</td>
+                                                            <td>2,850.75</td>
+                                                            <td class="text-danger">-15.25</td>
+                                                            <td class="text-danger">-0.53%</td>
+                                                            <td>2,875.00</td>
+                                                            <td>2,840.50</td>
+                                                            <td>1.2M</td>
+                                                            <td>
+                                                                <button class="btn btn-sm btn-outline-danger remove-symbol">
+                                                                    <i class="bi bi-trash"></i>
+                                                                </button>
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                        <div class="tab-pane fade" id="market-depth" role="tabpanel" aria-labelledby="market-depth-tab">
+                                            <div class="d-flex justify-content-between mb-3">
+                                                <div class="input-group" style="max-width: 300px;">
+                                                    <input type="text" id="depthSymbol" class="form-control" placeholder="Enter symbol...">
+                                                    <button class="btn btn-outline-secondary" type="button" id="getDepth">
+                                                        <i class="bi bi-search"></i> Get Depth
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <h6 class="text-center">Bid</h6>
+                                                    <div class="table-responsive">
+                                                        <table class="table table-sm table-bordered" id="bidTable">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th>Price</th>
+                                                                    <th>Quantity</th>
+                                                                    <th>Orders</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                <tr><td colspan="3" class="text-center">No data available</td></tr>
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <h6 class="text-center">Ask</h6>
+                                                    <div class="table-responsive">
+                                                        <table class="table table-sm table-bordered" id="askTable">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th>Price</th>
+                                                                    <th>Quantity</th>
+                                                                    <th>Orders</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                <tr><td colspan="3" class="text-center">No data available</td></tr>
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="tab-pane fade" id="market-indices" role="tabpanel" aria-labelledby="market-indices-tab">
+                                            <div class="d-flex justify-content-end mb-3">
+                                                <button id="refreshIndices" class="btn btn-sm btn-outline-primary">
+                                                    <i class="bi bi-arrow-clockwise"></i> Refresh
+                                                </button>
+                                            </div>
+                                            <div class="table-responsive">
+                                                <table class="table table-striped table-hover" id="indicesTable">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Index</th>
+                                                            <th>Value</th>
+                                                            <th>Change</th>
+                                                            <th>Change %</th>
+                                                            <th>High</th>
+                                                            <th>Low</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <tr>
+                                                            <td>NIFTY 50</td>
+                                                            <td>22,500.00</td>
+                                                            <td class="text-success">+120.50</td>
+                                                            <td class="text-success">+0.54%</td>
+                                                            <td>22,550.30</td>
+                                                            <td>22,380.10</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>SENSEX</td>
+                                                            <td>73,850.75</td>
+                                                            <td class="text-success">+380.25</td>
+                                                            <td class="text-success">+0.52%</td>
+                                                            <td>74,010.00</td>
+                                                            <td>73,620.50</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>NIFTY BANK</td>
+                                                            <td>48,250.60</td>
+                                                            <td class="text-danger">-120.40</td>
+                                                            <td class="text-danger">-0.25%</td>
+                                                            <td>48,450.30</td>
+                                                            <td>48,150.10</td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100">
+                                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                                    <h5 class="mb-0">Holdings</h5>
+                                    <button id="refreshHoldings" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-arrow-clockwise"></i> Refresh
+                                    </button>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-striped table-hover" id="holdingsTable">
+                                            <thead>
+                                                <tr>
+                                                    <th>Symbol</th>
+                                                    <th>Qty</th>
+                                                    <th>Avg Price</th>
+                                                    <th>LTP</th>
+                                                    <th>Current Value</th>
+                                                    <th>P&L</th>
+                                                    <th>P&L %</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td>NSE:TCS-EQ</td>
+                                                    <td>10</td>
+                                                    <td>3,450.00</td>
+                                                    <td>3,520.75</td>
+                                                    <td>35,207.50</td>
+                                                    <td class="text-success">+707.50</td>
+                                                    <td class="text-success">+2.05%</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>NSE:INFY-EQ</td>
+                                                    <td>20</td>
+                                                    <td>1,580.25</td>
+                                                    <td>1,550.50</td>
+                                                    <td>31,010.00</td>
+                                                    <td class="text-danger">-595.00</td>
+                                                    <td class="text-danger">-1.88%</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100">
+                                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                                    <h5 class="mb-0">Positions</h5>
+                                    <button id="refreshPositions" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-arrow-clockwise"></i> Refresh
+                                    </button>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-striped table-hover" id="positionsTable">
+                                            <thead>
+                                                <tr>
+                                                    <th>Symbol</th>
+                                                    <th>Type</th>
+                                                    <th>Qty</th>
+                                                    <th>Avg Price</th>
+                                                    <th>LTP</th>
+                                                    <th>P&L</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td>NSE:NIFTY25APR23C</td>
+                                                    <td>LONG</td>
+                                                    <td>50</td>
+                                                    <td>150.25</td>
+                                                    <td>165.50</td>
+                                                    <td class="text-success">+762.50</td>
+                                                    <td>
+                                                        <button class="btn btn-sm btn-outline-danger exit-position">
+                                                            <i class="bi bi-x-circle"></i> Exit
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>NSE:BANKNIFTY25APR23P</td>
+                                                    <td>SHORT</td>
+                                                    <td>25</td>
+                                                    <td>180.50</td>
+                                                    <td>175.25</td>
+                                                    <td class="text-success">+131.25</td>
+                                                    <td>
+                                                        <button class="btn btn-sm btn-outline-danger exit-position">
+                                                            <i class="bi bi-x-circle"></i> Exit
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-8 mb-3">
+                            <div class="card h-100">
+                                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                                    <h5 class="mb-0">Recent Orders</h5>
+                                    <button id="refreshOrders" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-arrow-clockwise"></i> Refresh
+                                    </button>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-striped table-hover" id="ordersTable">
+                                            <thead>
+                                                <tr>
+                                                    <th>Order ID</th>
+                                                    <th>Symbol</th>
+                                                    <th>Type</th>
+                                                    <th>Side</th>
+                                                    <th>Qty</th>
+                                                    <th>Price</th>
+                                                    <th>Status</th>
+                                                    <th>Time</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td>12345678</td>
+                                                    <td>NSE:HDFCBANK-EQ</td>
+                                                    <td>LIMIT</td>
+                                                    <td>BUY</td>
+                                                    <td>10</td>
+                                                    <td>1,650.00</td>
+                                                    <td><span class="badge bg-success">COMPLETE</span></td>
+                                                    <td>10:15:30</td>
+                                                    <td>
+                                                        <button class="btn btn-sm btn-outline-secondary view-order">
+                                                            <i class="bi bi-eye"></i>
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>12345679</td>
+                                                    <td>NSE:ICICIBANK-EQ</td>
+                                                    <td>LIMIT</td>
+                                                    <td>SELL</td>
+                                                    <td>15</td>
+                                                    <td>950.50</td>
+                                                    <td><span class="badge bg-warning text-dark">PENDING</span></td>
+                                                    <td>10:20:45</td>
+                                                    <td>
+                                                        <button class="btn btn-sm btn-outline-secondary view-order">
+                                                            <i class="bi bi-eye"></i>
+                                                        </button>
+                                                        <button class="btn btn-sm btn-outline-danger cancel-order">
+                                                            <i class="bi bi-x"></i>
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="card h-100">
+                                <div class="card-header bg-light">
+                                    <h5 class="mb-0">Quick Order</h5>
+                                </div>
+                                <div class="card-body">
+                                    <form id="quickOrderForm">
+                                        <div class="mb-3">
+                                            <label for="orderSymbol" class="form-label">Symbol</label>
+                                            <input type="text" class="form-control" id="orderSymbol" placeholder="e.g., NSE:RELIANCE-EQ" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Transaction Type</label>
+                                            <div class="btn-group w-100" role="group">
+                                                <input type="radio" class="btn-check" name="transactionType" id="buyOption" value="BUY" checked>
+                                                <label class="btn btn-outline-success" for="buyOption">BUY</label>
+                                                <input type="radio" class="btn-check" name="transactionType" id="sellOption" value="SELL">
+                                                <label class="btn btn-outline-danger" for="sellOption">SELL</label>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="orderType" class="form-label">Order Type</label>
+                                            <select class="form-select" id="orderType" required>
+                                                <option value="LIMIT">Limit</option>
+                                                <option value="MARKET">Market</option>
+                                                <option value="SL">Stop Loss</option>
+                                                <option value="SL-M">Stop Loss Market</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="orderQuantity" class="form-label">Quantity</label>
+                                            <input type="number" class="form-control" id="orderQuantity" min="1" required>
+                                        </div>
+                                        <div class="mb-3" id="priceField">
+                                            <label for="orderPrice" class="form-label">Price</label>
+                                            <input type="number" class="form-control" id="orderPrice" step="0.05">
+                                        </div>
+                                        <div class="mb-3" id="triggerField" style="display: none;">
+                                            <label for="triggerPrice" class="form-label">Trigger Price</label>
+                                            <input type="number" class="form-control" id="triggerPrice" step="0.05">
+                                        </div>
+                                        <div class="d-grid gap-2">
+                                            <button type="submit" class="btn btn-primary">Place Order</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Order Details Modal -->
+<div class="modal fade" id="orderDetailsModal" tabindex="-1" aria-labelledby="orderDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="orderDetailsModalLabel">Order Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Order ID:</strong> <span id="modalOrderId"></span></p>
+                        <p><strong>Symbol:</strong> <span id="modalSymbol"></span></p>
+                        <p><strong>Type:</strong> <span id="modalType"></span></p>
+                        <p><strong>Side:</strong> <span id="modalSide"></span></p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Quantity:</strong> <span id="modalQty"></span></p>
+                        <p><strong>Price:</strong> <span id="modalPrice"></span></p>
+                        <p><strong>Status:</strong> <span id="modalStatus"></span></p>
+                        <p><strong>Time:</strong> <span id="modalTime"></span></p>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <h6>Order History</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Time</th>
+                                        <th>Status</th>
+                                        <th>Remarks</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="orderHistoryBody">
+                                    <!-- Order history will be populated here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Toggle price and trigger fields based on order type
+            $('#orderType').change(function() {
+                const orderType = $(this).val();
+                
+                if (orderType === 'MARKET' || orderType === 'SL-M') {
+                    $('#priceField').hide();
+                } else {
+                    $('#priceField').show();
+                }
+                
+                if (orderType === 'SL' || orderType === 'SL-M') {
+                    $('#triggerField').show();
+                } else {
+                    $('#triggerField').hide();
+                }
+            });
+            
+            // Quick order form submission
+            $('#quickOrderForm').submit(function(e) {
+                e.preventDefault();
+                
+                // Show loading state
+                const submitBtn = $(this).find('button[type="submit"]');
+                const originalText = submitBtn.text();
+                submitBtn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...');
+                
+                // Simulate API call
+                setTimeout(function() {
+                    // Reset button
+                    submitBtn.prop('disabled', false).text(originalText);
+                    
+                    // Show success message
+                    alert('Order placed successfully!');
+                    
+                    // Reset form
+                    $('#quickOrderForm')[0].reset();
+                }, 1500);
+            });
+            
+            // View order details
+            $('.view-order').click(function() {
+                // In a real implementation, you would fetch order details from the API
+                // For now, we'll use dummy data
+                
+                const row = $(this).closest('tr');
+                const orderId = row.find('td:eq(0)').text();
+                const symbol = row.find('td:eq(1)').text();
+                const type = row.find('td:eq(2)').text();
+                const side = row.find('td:eq(3)').text();
+                const qty = row.find('td:eq(4)').text();
+                const price = row.find('td:eq(5)').text();
+                const status = row.find('td:eq(6)').text();
+                const time = row.find('td:eq(7)').text();
+                
+                // Populate modal
+                $('#modalOrderId').text(orderId);
+                $('#modalSymbol').text(symbol);
+                $('#modalType').text(type);
+                $('#modalSide').text(side);
+                $('#modalQty').text(qty);
+                $('#modalPrice').text(price);
+                $('#modalStatus').html(status);
+                $('#modalTime').text(time);
+                
+                // Populate order history (dummy data)
+                const historyHtml = `
+                    <tr>
+                        <td>${time}</td>
+                        <td>${status}</td>
+                        <td>Order ${status.toLowerCase()}</td>
+                    </tr>
+                    <tr>
+                        <td>${time.split(':')[0]}:${parseInt(time.split(':')[1]) - 1}:${time.split(':')[2]}</td>
+                        <td><span class="badge bg-info">CREATED</span></td>
+                        <td>Order created</td>
+                    </tr>
+                `;
+                $('#orderHistoryBody').html(historyHtml);
+                
+                // Show modal
+                $('#orderDetailsModal').modal('show');
+            });
+            
+            // Cancel order
+            $('.cancel-order').click(function() {
+                if (confirm('Are you sure you want to cancel this order?')) {
+                    // In a real implementation, you would call the API to cancel the order
+                    // For now, we'll just show a message
+                    alert('Order cancelled successfully!');
+                    
+                    // Update the status in the table
+                    $(this).closest('tr').find('td:eq(6)').html('<span class="badge bg-danger">CANCELLED</span>');
+                    
+                    // Remove the cancel button
+                    $(this).remove();
+                }
+            });
+            
+            // Exit position
+            $('.exit-position').click(function() {
+                if (confirm('Are you sure you want to exit this position?')) {
+                    // In a real implementation, you would call the API to exit the position
+                    // For now, we'll just show a message
+                    alert('Position exited successfully!');
+                    
+                    // Remove the row from the table
+                    $(this).closest('tr').fadeOut(500, function() {
+                        $(this).remove();
+                    });
+                }
+            });
+            
+            // Refresh buttons
+            $('#refreshAccount, #refreshWatchlist, #refreshHoldings, #refreshPositions, #refreshOrders, #refreshIndices').click(function() {
+                const button = $(this);
+                const originalHtml = button.html();
+                
+                // Show loading state
+                button.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>');
+                
+                // Simulate API call
+                setTimeout(function() {
+                    // Reset button
+                    button.prop('disabled', false).html(originalHtml);
+                    
+                    // Update last updated time
+                    $('#updateTime').text(new Date().toLocaleTimeString());
+                }, 1000);
+            });
+            
+            // Add symbol to watchlist
+            $('#addSymbol').click(function() {
+                const symbol = $('#symbolSearch').val().trim();
+                if (symbol) {
+                    // In a real implementation, you would validate the symbol and add it to the watchlist
+                    // For now, we'll just add a dummy row
+                    const newRow = `
+                        <tr>
+                            <td>${symbol}</td>
+                            <td>0.00</td>
+                            <td class="text-secondary">0.00</td>
+                            <td class="text-secondary">0.00%</td>
+                            <td>0.00</td>
+                            <td>0.00</td>
+                            <td>-</td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-danger remove-symbol">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                    $('#watchlistTable tbody').append(newRow);
+                    
+                    // Clear the input
+                    $('#symbolSearch').val('');
+                    
+                    // Attach event handler to the new button
+                    $('.remove-symbol').last().click(function() {
+                        $(this).closest('tr').remove();
+                    });
+                }
+            });
+            
+            // Remove symbol from watchlist
+            $('.remove-symbol').click(function() {
+                $(this).closest('tr').remove();
+            });
+            
+            // Get market depth
+            $('#getDepth').click(function() {
+                const symbol = $('#depthSymbol').val().trim();
+                if (symbol) {
+                    // Show loading state
+                    const button = $(this);
+                    const originalHtml = button.html();
+                    button.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>');
+                    
+                    // Simulate API call
+                    setTimeout(function() {
+                        // Reset button
+                        button.prop('disabled', false).html(originalHtml);
+                        
+                        // Populate bid table with dummy data
+                        let bidHtml = '';
+                        for (let i = 0; i < 5; i++) {
+                            const price = (1000 - i * 0.05).toFixed(2);
+                            const qty = Math.floor(Math.random() * 1000) + 100;
+                            const orders = Math.floor(Math.random() * 10) + 1;
+                            bidHtml += `
+                                <tr>
+                                    <td>${price}</td>
+                                    <td>${qty}</td>
+                                    <td>${orders}</td>
+                                </tr>
+                            `;
+                        }
+                        $('#bidTable tbody').html(bidHtml);
+                        
+                        // Populate ask table with dummy data
+                        let askHtml = '';
+                        for (let i = 0; i < 5; i++) {
+                            const price = (1000 + i * 0.05).toFixed(2);
+                            const qty = Math.floor(Math.random() * 1000) + 100;
+                            const orders = Math.floor(Math.random() * 10) + 1;
+                            askHtml += `
+                                <tr>
+                                    <td>${price}</td>
+                                    <td>${qty}</td>
+                                    <td>${orders}</td>
+                                </tr>
+                            `;
+                        }
+                        $('#askTable tbody').html(askHtml);
+                    }, 1000);
+                }
+            });
+            
+            // Initialize WebSocket connection (simulated)
+            function initWebSocket() {
+                console.log('Initializing WebSocket connection...');
+                
+                // In a real implementation, you would connect to the Fyers WebSocket API
+                // For now, we'll just simulate updates
+                
+                // Simulate market data updates
+                setInterval(function() {
+                    // Update watchlist data
+                    $('#watchlistTable tbody tr').each(function() {
+                        const row = $(this);
+                        const currentPrice = parseFloat(row.find('td:eq(1)').text());
+                        const change = (Math.random() * 2 - 1).toFixed(2);
+                        const newPrice = (currentPrice + parseFloat(change)).toFixed(2);
+                        const changePercent = (change / currentPrice * 100).toFixed(2);
+                        
+                        row.find('td:eq(1)').text(newPrice);
+                        
+                        if (parseFloat(change) >= 0) {
+                            row.find('td:eq(2)').text(`+${change}`).removeClass('text-danger text-secondary').addClass('text-success');
+                            row.find('td:eq(3)').text(`+${changePercent}%`).removeClass('text-danger text-secondary').addClass('text-success');
+                        } else {
+                            row.find('td:eq(2)').text(change).removeClass('text-success text-secondary').addClass('text-danger');
+                            row.find('td:eq(3)').text(`${changePercent}%`).removeClass('text-success text-secondary').addClass('text-danger');
+                        }
+                    });
+                    
+                    // Update last updated time
+                    $('#updateTime').text(new Date().toLocaleTimeString());
+                }, 5000);
+            }
+            
+            // Initialize WebSocket
+            initWebSocket();
+        });
+    </script>
+}
